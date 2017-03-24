@@ -11,16 +11,20 @@ const images = path.join(__dirname, 'images')
 
 const getFilenameFromRequest = (req) => {
   const parsedUrl = url.parse(req.url)
-  if (typeof parsedUrl === 'undefined') return send(res, 404, 'Bad request')
+  if (typeof parsedUrl === 'undefined') return false
 
   const filename = path.basename(parsedUrl.pathname)
-  if (typeof filename === 'undefined' || !filename.length) return send(res, 400, 'Bad filename')
+  if (typeof filename === 'undefined' || !filename.length) return false
 
   return filename
 }
 
 const get = (req, res) => {
   const filename = getFilenameFromRequest(req)
+  if (!filename) {
+    send(res, 400, 'Bad filename')
+    return
+  }
 
   const file = path.join(images, filename)
   const mimeType = mime.lookup(filename)
@@ -34,6 +38,10 @@ const get = (req, res) => {
 
 const post = async (req, res) => {
   const filename = getFilenameFromRequest(req)
+  if (!filename) {
+    send(res, 400, 'Bad filename')
+    return
+  }
 
   const data = await getRawBody(req, { 
     length: req.headers['content-length'], limit: '10mb',
